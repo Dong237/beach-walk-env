@@ -106,10 +106,12 @@ class BeachWalkEnv(MiniGridEnv):
 
         # Turn agent in the direction it tries to move
         self.agent_dir = action
-
+        
+        ## where is the mechanism that prevent the agent from going beyond the grid
+        ## or: what if self.front_pos lies beyond the grid?
         # Get the position in front of the agent
         fwd_pos = self.front_pos
-
+        
         # Get the contents of the cell in front of the agent
         fwd_cell = self.grid.get(*fwd_pos)
         ## what does None mean for fwd_cell??
@@ -138,10 +140,9 @@ class BeachWalkEnv(MiniGridEnv):
 
     def step(self, action):
         obs, reward, terminated, truncated, info = self.normal_step(action)
-        # highly suspicous!!
-        if self._rand_float(0, 1) < self.wind_gust_probability:
-            action = self.action_space.sample()
-            obs, reward, terminated, truncated, info = self.normal_step(action)
+        # if self._rand_float(0, 1) < self.wind_gust_probability:
+        #     action = self.action_space.sample()
+        #     obs, reward, terminated, truncated, info = self.normal_step(action)
         return obs, reward, terminated, truncated, info
 
     def _reward(self):
