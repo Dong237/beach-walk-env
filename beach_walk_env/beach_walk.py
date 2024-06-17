@@ -20,8 +20,17 @@ class BeachWalkEnv(MiniGridEnv):
         {"render_fps": 5}
     )
 
-    def __init__(self, size=6, agent_start_pos=(1, 2), agent_start_dir=0, max_steps=25, wind_gust_probability=0.5,
-                 reward=1., penalty=-1., discount=1., **kwargs):
+    def __init__(self, 
+                 size=6, 
+                 agent_start_pos=(1, 2), 
+                 agent_start_dir=0, 
+                 max_steps=25, 
+                 wind_gust_probability=0.5,
+                 reward=1., 
+                 penalty=-1., 
+                 discount=1., 
+                 **kwargs
+                 ):
         self.agent_start_pos = agent_start_pos
         self.agent_start_dir = agent_start_dir
         self.wind_gust_probability = wind_gust_probability
@@ -30,10 +39,16 @@ class BeachWalkEnv(MiniGridEnv):
         self.penalty = penalty
         self.discount = discount
 
-        self.reward_spec = {"reward": self.reward, "penalty": self.penalty, "discount": self.discount}
+        self.reward_spec = {
+            "reward": self.reward, 
+            "penalty": self.penalty, 
+            "discount": self.discount
+            }
 
         super().__init__(
-            mission_space=MissionSpace(mission_func=lambda: "Avoid the water and get to the green goal square."),
+            mission_space=MissionSpace(
+                mission_func=lambda: "Avoid the water and get to the green goal square."
+                ),
             grid_size=size,
             max_steps=max_steps,
             # Set this to True for maximum speed
@@ -77,8 +92,8 @@ class BeachWalkEnv(MiniGridEnv):
     @staticmethod
     def _create_mission_statement():
         return "Reach the goal without falling into the water."
-
-    def step(self, action):
+        
+    def normal_step(self, action):
         reward = 0.0
         terminated = False
         truncated = False
@@ -86,9 +101,6 @@ class BeachWalkEnv(MiniGridEnv):
 
         if action is None:
             return self.gen_obs(), reward, terminated, truncated, info
-
-        if self._rand_float(0, 1) < self.wind_gust_probability:
-            action = self.action_space.sample()
 
         self.step_count += 1
 
@@ -100,7 +112,7 @@ class BeachWalkEnv(MiniGridEnv):
 
         # Get the contents of the cell in front of the agent
         fwd_cell = self.grid.get(*fwd_pos)
-
+        ## what does None mean for fwd_cell??
         if fwd_cell is None or fwd_cell.can_overlap():
             self.agent_pos = fwd_pos
         if fwd_cell is not None and fwd_cell.type == 'goal':
@@ -118,9 +130,18 @@ class BeachWalkEnv(MiniGridEnv):
             if "episode_end" not in info:
                 info["episode_end"] = "timeout"
                 info["is_success"] = False
-
+        # still don't understand what obs contains
+        # and does the "direction" key matter in obs? if yes how??
         obs = self.gen_obs()
+        
+        return obs, reward, terminated, truncated, info
 
+    def step(self, action):
+        obs, reward, terminated, truncated, info = self.normal_step(action)
+        # highly suspicous!!
+        if self._rand_float(0, 1) < self.wind_gust_probability:
+            action = self.action_space.sample()
+            obs, reward, terminated, truncated, info = self.normal_step(action)
         return obs, reward, terminated, truncated, info
 
     def _reward(self):
@@ -135,8 +156,15 @@ class BeachWalkEnv(MiniGridEnv):
         self.agent_pos = np.array((i, j))
 
 
-def create_wrapped_beach_walk(size=6, agent_start_pos=(1, 2), agent_start_dir=0, max_steps=150,
-                              wind_gust_probability=0.5, discount=1., **kwargs):
+def create_wrapped_beach_walk(
+    size=6, 
+    agent_start_pos=(1, 2), 
+    agent_start_dir=0, 
+    max_steps=150,
+    wind_gust_probability=0.5, 
+    discount=1., 
+    **kwargs
+    ):
     env = BeachWalkEnv(size, agent_start_pos, agent_start_dir, max_steps, wind_gust_probability, discount=discount,
                        **kwargs)
     env = FullyObsWrapper(env)
@@ -145,8 +173,15 @@ def create_wrapped_beach_walk(size=6, agent_start_pos=(1, 2), agent_start_dir=0,
     return env
 
 
-def create_fixed_horizon_beach_walk(size=6, agent_start_pos=(1, 2), agent_start_dir=0, horizon_length=25,
-                                    wind_gust_probability=0.5, discount=1.0, **kwargs):
+def create_fixed_horizon_beach_walk(
+    size=6, 
+    agent_start_pos=(1, 2), 
+    agent_start_dir=0, 
+    horizon_length=25,
+    wind_gust_probability=0.5, 
+    discount=1.0, 
+    **kwargs
+    ):
     env = create_wrapped_beach_walk(size=size, agent_start_pos=agent_start_pos, agent_start_dir=agent_start_dir,
                                     wind_gust_probability=wind_gust_probability, discount=discount, **kwargs)
     env = TrueEpisodeMonitor(env)
