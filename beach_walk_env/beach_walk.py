@@ -14,6 +14,14 @@ from beach_walk_env.one_hot_observation_wrapper import OneHotObsWrapper
 from beach_walk_env.true_episode_monitor import TrueEpisodeMonitor
 from beach_walk_env.water import Water
 
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    filename='debug.log',
+    filemode='w'  # 'w' for overwrite, 'a' for append
+    )
 
 class BeachWalkEnv(MiniGridEnv):
     MiniGridEnv.metadata.update(
@@ -102,6 +110,9 @@ class BeachWalkEnv(MiniGridEnv):
         if action is None:
             return self.gen_obs(), reward, terminated, truncated, info
 
+        if self._rand_float(0, 1) < self.wind_gust_probability:
+            action = self.action_space.sample()
+        
         self.step_count += 1
 
         # Turn agent in the direction it tries to move
@@ -112,6 +123,11 @@ class BeachWalkEnv(MiniGridEnv):
         # Get the position in front of the agent
         fwd_pos = self.front_pos
         
+        logging.debug(f"Forward Position is: {self.agent_pos} + {self.dir_vec}")
+        # logging.debug(f"Grid Width: {self.grid.width}, Grid Height: {self.grid.height}")        
+        if not (0 <= fwd_pos[0] < self.grid.width and 0 <= fwd_pos[1] < self.grid.height):
+            logging.error(f"Forward Position out of bounds: {fwd_pos}")
+            
         # Get the contents of the cell in front of the agent
         fwd_cell = self.grid.get(*fwd_pos)
         ## what does None mean for fwd_cell??
