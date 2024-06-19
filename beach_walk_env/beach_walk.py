@@ -110,8 +110,8 @@ class BeachWalkEnv(MiniGridEnv):
         if action is None:
             return self.gen_obs(), reward, terminated, truncated, info
 
-        if self._rand_float(0, 1) < self.wind_gust_probability:
-            action = self.action_space.sample()
+        # if self._rand_float(0, 1) < self.wind_gust_probability:
+        #     action = self.action_space.sample()
         
         self.step_count += 1
 
@@ -159,9 +159,9 @@ class BeachWalkEnv(MiniGridEnv):
 
     def step(self, action):
         obs, reward, terminated, truncated, info = self.normal_step(action)
-        # if self._rand_float(0, 1) < self.wind_gust_probability:
-        #     action = self.action_space.sample()
-        #     obs, reward, terminated, truncated, info = self.normal_step(action)
+        if self._rand_float(0, 1) < self.wind_gust_probability:
+            action = self.action_space.sample()
+            obs, reward, terminated, truncated, info = self.normal_step(action)
         return obs, reward, terminated, truncated, info
 
     def _reward(self):
