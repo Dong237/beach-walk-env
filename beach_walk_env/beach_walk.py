@@ -42,6 +42,8 @@ class BeachWalkEnv(MiniGridEnv):
         self.agent_start_pos = agent_start_pos
         self.agent_start_dir = agent_start_dir
         self.wind_gust_probability = wind_gust_probability
+        self.windy = kwargs.get("windy", True)
+        self.wind_setting = kwargs.get("wind_setting", None)
 
         self.reward = reward
         self.penalty = penalty
@@ -101,7 +103,7 @@ class BeachWalkEnv(MiniGridEnv):
     def _create_mission_statement():
         return "Reach the goal without falling into the water."
         
-    def normal_step(self, action):
+    def _normal_step(self, action):
         reward = 0.0
         terminated = False
         truncated = False
@@ -109,19 +111,17 @@ class BeachWalkEnv(MiniGridEnv):
 
         if action is None:
             return self.gen_obs(), reward, terminated, truncated, info
-
-        # if self._rand_float(0, 1) < self.wind_gust_probability:
-        #     action = self.action_space.sample()
         
         self.step_count += 1
 
         # Turn agent in the direction it tries to move
         self.agent_dir = action
         
-        ## where is the mechanism that prevent the agent from going beyond the grid
-        ## or: what if self.front_pos lies beyond the grid?
-        # Get the position in front of the agent
+        # TODO: hard code the boundry of agent position for now 
+        # this appears to slow down the training
         self.agent_pos = np.clip(self.agent_pos, 1, 4)
+        
+        # Get the position in front of the agent
         fwd_pos = self.front_pos
         
         logging.debug(f"Forward Position is: {self.agent_pos} + {self.dir_vec}")
@@ -159,10 +159,20 @@ class BeachWalkEnv(MiniGridEnv):
         return obs, reward, terminated, truncated, info
 
     def step(self, action):
-        obs, reward, terminated, truncated, info = self.normal_step(action)
-        if self._rand_float(0, 1) < self.wind_gust_probability:
-            action = self.action_space.sample()
-            obs, reward, terminated, truncated, info = self.normal_step(action)
+        if self.windy:
+            # if the wind effect overwrites the original action
+            if self.wind_setting == "overwrite":
+                if self._rand_float(0, 1) < self.wind_gust_probability:
+                    action = self.action_space.sample()
+                obs, reward, terminated, truncated, info = self._normal_step(action)
+            else: # the wind blows after the action being taken
+                obs, reward, terminated, truncated, info = self._normal_step(action)
+                if not terminated and not truncated:
+                    if self._rand_float(0, 1) < self.wind_gust_probability:
+                        action = self.action_space.sample()
+                        obs, reward, terminated, truncated, info = self._normal_step(action)
+        else:
+            obs, reward, terminated, truncated, info = self._normal_step(action)
         return obs, reward, terminated, truncated, info
 
     def _reward(self):
