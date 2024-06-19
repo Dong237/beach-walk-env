@@ -36,14 +36,16 @@ class BeachWalkEnv(MiniGridEnv):
                  wind_gust_probability=0.5,
                  reward=1., 
                  penalty=-1., 
-                 discount=1., 
+                 discount=1.,
+                 windy=True,
+                 wind_setting=None,
                  **kwargs
                  ):
         self.agent_start_pos = agent_start_pos
         self.agent_start_dir = agent_start_dir
         self.wind_gust_probability = wind_gust_probability
-        self.windy = kwargs.get("windy", True)
-        self.wind_setting = kwargs.get("wind_setting", None)
+        self.windy = windy
+        self.wind_setting = wind_setting
 
         self.reward = reward
         self.penalty = penalty
