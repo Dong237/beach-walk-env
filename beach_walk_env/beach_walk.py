@@ -110,8 +110,8 @@ class BeachWalkEnv(MiniGridEnv):
         if action is None:
             return self.gen_obs(), reward, terminated, truncated, info
 
-        if self._rand_float(0, 1) < self.wind_gust_probability:
-            action = self.action_space.sample()
+        # if self._rand_float(0, 1) < self.wind_gust_probability:
+        #     action = self.action_space.sample()
         
         self.step_count += 1
 
@@ -121,6 +121,7 @@ class BeachWalkEnv(MiniGridEnv):
         ## where is the mechanism that prevent the agent from going beyond the grid
         ## or: what if self.front_pos lies beyond the grid?
         # Get the position in front of the agent
+        self.agent_pos = np.clip(self.agent_pos, 1, 4)
         fwd_pos = self.front_pos
         
         logging.debug(f"Forward Position is: {self.agent_pos} + {self.dir_vec}")
@@ -143,7 +144,6 @@ class BeachWalkEnv(MiniGridEnv):
             info["is_success"] = True
         if fwd_cell is not None and fwd_cell.type == 'lava':
             # terminated = True
-            self.agent_pos = fwd_pos
             reward = self._penalty()
             info["episode_end"] = "failure"
             info["is_success"] = False
@@ -160,9 +160,9 @@ class BeachWalkEnv(MiniGridEnv):
 
     def step(self, action):
         obs, reward, terminated, truncated, info = self.normal_step(action)
-        # if self._rand_float(0, 1) < self.wind_gust_probability:
-        #     action = self.action_space.sample()
-        #     obs, reward, terminated, truncated, info = self.normal_step(action)
+        if self._rand_float(0, 1) < self.wind_gust_probability:
+            action = self.action_space.sample()
+            obs, reward, terminated, truncated, info = self.normal_step(action)
         return obs, reward, terminated, truncated, info
 
     def _reward(self):
