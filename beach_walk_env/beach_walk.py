@@ -169,12 +169,15 @@ class BeachWalkEnv(MiniGridEnv):
                 if self._rand_float(0, 1) < self.wind_gust_probability:
                     action = self.action_space.sample()
                 obs, reward, terminated, truncated, info = self._normal_step(action)
-            else: # the wind blows after the action being taken
+            # the wind blows after the action being taken
+            elif self.wind_setting == "stack": 
                 obs, reward, terminated, truncated, info = self._normal_step(action)
                 if not terminated and not truncated:
                     if self._rand_float(0, 1) < self.wind_gust_probability:
                         action = self.action_space.sample()
                         obs, reward, terminated, truncated, info = self._normal_step(action)
+            else:
+                raise Exception("Wind Setting not supported")
         else:
             obs, reward, terminated, truncated, info = self._normal_step(action)
         return obs, reward, terminated, truncated, info
