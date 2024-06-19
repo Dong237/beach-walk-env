@@ -123,10 +123,10 @@ class BeachWalkEnv(MiniGridEnv):
         # Get the position in front of the agent
         fwd_pos = self.front_pos
         
-        # logging.debug(f"Forward Position is: {self.agent_pos} + {self.dir_vec}")
-        # # logging.debug(f"Grid Width: {self.grid.width}, Grid Height: {self.grid.height}")        
-        # if not (0 <= fwd_pos[0] < self.grid.width and 0 <= fwd_pos[1] < self.grid.height):
-        #     logging.error(f"Forward Position out of bounds: {fwd_pos}")
+        logging.debug(f"Forward Position is: {self.agent_pos} + {self.dir_vec}")
+        # logging.debug(f"Grid Width: {self.grid.width}, Grid Height: {self.grid.height}")        
+        if not (0 <= fwd_pos[0] < self.grid.width and 0 <= fwd_pos[1] < self.grid.height):
+            logging.error(f"Forward Position out of bounds: {fwd_pos}")
 
         with open('log_env.txt', 'a') as file:
             file.write(f"{self.agent_pos}+{self.dir_vec}\n")
