@@ -73,6 +73,8 @@ class BeachWalkEnv(MiniGridEnv):
         self.total_step_count = 0
 
     def _gen_grid(self, width, height):
+        logging.debug(f"Windy: {self.windy} Wind Setting {self.wind_setting}")
+        
         # Create an empty grid
         self.grid = Grid(width, height)
 
